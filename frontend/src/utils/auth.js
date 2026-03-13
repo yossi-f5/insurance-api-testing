@@ -6,6 +6,39 @@ import { getApiUrl } from './api.js';
 
 const API_BASE_URL = getApiUrl('api');
 
+const AUTH_DEBUG = import.meta.env.DEV || import.meta.env.VITE_AUTH_DEBUG === 'true';
+
+const logAuth = (...args) => {
+  if (AUTH_DEBUG) {
+    console.log('[auth]', ...args);
+  }
+};
+
+const parseJsonResponse = async (response, context) => {
+  const contentType = response.headers.get('content-type') || 'unknown';
+  const responseText = await response.text();
+
+  logAuth(`${context} response`, {
+    url: response.url,
+    status: response.status,
+    ok: response.ok,
+    contentType,
+    bodyPreview: responseText.slice(0, 300)
+  });
+
+  if (!responseText.trim()) {
+    throw new Error(`${context} failed: empty response body (status ${response.status})`);
+  }
+
+  try {
+    return JSON.parse(responseText);
+  } catch {
+    throw new Error(
+      `${context} failed: expected JSON but got non-JSON response (status ${response.status}, content-type ${contentType})`
+    );
+  }
+};
+
 export const saveToken = (token) => {
   localStorage.setItem(TOKEN_KEY, token);
 };
@@ -38,7 +71,7 @@ export const isAuthenticated = () => {
     }
     
     return true;
-  } catch (error) {
+  } catch {
     console.log('🔍 Error parsing token, clearing auth');
     clearAuth();
     return false;
@@ -64,6 +97,9 @@ export const clearAuth = () => {
 // New functions for backend integration
 export const registerUser = async (username, password) => {
   try {
+    const url = `${API_BASE_URL}/auth/register`;
+    logAuth('register request', { url, username });
+
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
       headers: {
@@ -72,12 +108,11 @@ export const registerUser = async (username, password) => {
       body: JSON.stringify({ username, password }),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Registration failed');
-    }
+    const data = await parseJsonResponse(response, 'Registration');
 
-    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Registration failed');
+    }
     
     // Save token and user data (same as login)
     saveToken(data.token);
@@ -93,6 +128,9 @@ export const registerUser = async (username, password) => {
 
 export const loginUser = async (username, password) => {
   try {
+    const url = `${API_BASE_URL}/auth/login`;
+    logAuth('login request', { url, username });
+
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: {
@@ -101,12 +139,11 @@ export const loginUser = async (username, password) => {
       body: JSON.stringify({ username, password }),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Login failed');
-    }
+    const data = await parseJsonResponse(response, 'Login');
 
-    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Login failed');
+    }
     
     // Save token and user data
     saveToken(data.token);
@@ -127,6 +164,9 @@ export const getUserProfile = async () => {
       throw new Error('No authentication token');
     }
 
+    const url = `${API_BASE_URL}/auth/profile`;
+    logAuth('profile request', { url });
+
     const response = await fetch(`${API_BASE_URL}/auth/profile`, {
       method: 'GET',
       headers: {
@@ -135,12 +175,11 @@ export const getUserProfile = async () => {
       },
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to get profile');
-    }
+    const data = await parseJsonResponse(response, 'Profile');
 
-    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to get profile');
+    }
     
     // Update stored user data
     saveUserRole(data.user.role);

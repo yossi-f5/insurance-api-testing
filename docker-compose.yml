@@ -1,8 +1,8 @@
-version: '3.8'
-
 services:
   frontend:
-    image: rafauser/insurance-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: frontend
     ports:
       - "80:80"
@@ -10,9 +10,12 @@ services:
       - backend
     networks:
       - insurance-network
+    restart: unless-stopped
 
   backend:
-    image: rafauser/insurance-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: backend
     ports:
       - "3001:3001"
@@ -20,9 +23,30 @@ services:
       - JWT_SECRET=your-super-secret-jwt-key-for-security-testing-2024
       - PORT=3001
       - NODE_ENV=production
-      - CORS_ORIGINS=http://localhost,http://localhost:80,http://frontend:80,https://apitestinginsurance.azurewebsites.net
+      - CORS_ORIGINS=http://localhost,http://localhost:80,http://frontend:80
+    volumes:
+      - ./backend/data:/app/data
     networks:
       - insurance-network
+    restart: unless-stopped
+
+  simulator:
+    build:
+      context: ./scripts
+    container_name: traffic-simulator
+    depends_on:
+      - frontend
+    environment:
+      - TRAFFIC_BASE_URL=http://frontend
+      - SIMULATION_DURATION=5
+      - REQUEST_INTERVAL=15000
+      - CONCURRENT_USERS=8
+      - MAX_REQUESTS_PER_USER=30
+    volumes:
+      - ./scripts/logs:/var/log
+    networks:
+      - insurance-network
+    restart: unless-stopped
 
 networks:
   insurance-network:
