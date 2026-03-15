@@ -1,0 +1,25 @@
+version: 1.0
+runtime: nodejs20
+build:
+	commands:
+		pre-build:
+			- npm ci
+		build:
+			- npm run build
+run:
+	runtime-version: 20
+	command: npm run preview -- --host 0.0.0.0 --port $PORT
+	network:
+		port: 8080
+		env: PORT
+	env:
+		- name: NODE_ENV
+			value: production
+		- name: PORT
+			value: "8080"
+	health-check:
+		path: /
+		interval: 10
+		timeout: 5
+		healthy-threshold: 1
+		unhealthy-threshold: 5
