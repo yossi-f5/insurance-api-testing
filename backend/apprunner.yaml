@@ -5,7 +5,7 @@ build:
     pre-build:
       - npm ci --omit=dev
 run:
-  runtime-version: 18
+  runtime-version: 22
   command: npm start
   network:
     port: 3001
