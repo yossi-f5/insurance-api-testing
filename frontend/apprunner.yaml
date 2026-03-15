@@ -8,7 +8,7 @@ build:
       - npm run build
 run:
   runtime-version: 20
-  command: npm run preview -- --host 0.0.0.0 --port $PORT
+  command: npm start
   network:
     port: 8080
     env: PORT
