@@ -286,7 +286,7 @@ router.post('/documents/preview', async (req, res) => {
       return res.status(200).json({
         content: mockResponse.content,
         fetchedAt: new Date().toISOString(),
-        source: targetUrl
+        url: targetUrl
       });
       
     } catch (error) {

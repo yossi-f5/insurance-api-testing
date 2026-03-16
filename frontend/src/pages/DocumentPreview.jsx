@@ -73,7 +73,7 @@ const DocumentPreview = () => {
             <div className="result-content">
               <div className="preview-meta">
                 <p><strong>Fetched At:</strong> {new Date(result.fetchedAt).toLocaleString()}</p>
-                <p><strong>Source:</strong> {result.source}</p>
+                <p><strong>URL:</strong> {result.url}</p>
               </div>
               
               <div className="document-content">
