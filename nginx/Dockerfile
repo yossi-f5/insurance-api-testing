@@ -1,10 +1,12 @@
-# First stage: get dist/ from built frontend image
-FROM rafauser/insurance-frontend as frontend-build
+# Stage 1: Build the frontend from source
+FROM node:20-alpine AS frontend-build
+WORKDIR /app
+COPY frontend/package*.json ./
+RUN npm ci
+COPY frontend/ .
+RUN npm run build
 
-# Final stage: NGINX serving the frontend
+# Stage 2: NGINX serving the frontend
 FROM nginx:alpine
-
-COPY nginx.conf /etc/nginx/nginx.conf
-
-# ✅ Copy frontend build from the previous stage
-COPY --from=frontend-build /usr/share/nginx/html /usr/share/nginx/html
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
+COPY --from=frontend-build /app/dist /usr/share/nginx/html

@@ -6,7 +6,7 @@
 [![F5 XC Ready](https://img.shields.io/badge/F5%20XC-Ready-green)](https://www.f5.com/cloud/products/application-services)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-black?logo=github)](https://github.com/refaelach/insurance-api-testing)
 
-A Dockerized demo application for security testing of common API vulnerabilities, including OWASP API Security Top 10. Built with React, Node.js, and designed for integration with F5 XC Load Balancer.
+A demo application for security testing of common API vulnerabilities, including OWASP API Security Top 10. Built with React and Node.js, with support for running either through Docker with NGINX or directly with Express/Node without Docker or NGINX.
 
 ## 🎯 Purpose
 
@@ -75,26 +75,64 @@ This project provides a **realistic insurance application** with **intentional v
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Docker and Docker Compose
 - Git
+- Docker and Docker Compose for the containerized option
+- Node.js 20+ and npm for the non-Docker option
 
-### 1. Clone and Deploy
+### 1. Clone the Repository
 ```bash
 # Clone the repository
-git clone https://github.com/refaelach/insurance-api-testing.git
+git clone https://github.com/yossi-f5/insurance-api-testing.git 
 cd insurance-api-testing
+```
+
+### 2. Run Options
+
+#### Option A: Run with Docker and NGINX
+This starts the full stack with containers and exposes the app through NGINX on port 80.
+
+```bash
 
 # Build and start all services
 docker-compose up --build
 ```
 
-### 2. Access the Application
+#### Option B: Run without Docker or NGINX
+This runs the backend directly with Express and serves the built frontend with the Node/Express server in `frontend/server.js`.
+
+```bash
+# Terminal 1 - backend
+cd backend
+npm ci
+npm start
+
+# Terminal 2 - frontend
+cd frontend
+npm ci
+npm run build
+BACKEND_BASE_URL=http://localhost:3001 npm start
+```
+
+If you prefer, you can also use the Vite development server for frontend-only work:
+
+```bash
+cd frontend
+npm ci
+VITE_API_BASE_URL=http://localhost:3001 npm run dev
+```
+
+### 3. Access the Application
 - **Frontend**: http://localhost
 - **API Health Check**: http://localhost/api/health
 - **Admin Login**: `admin1` / `adminpass`
 - **User Login**: `user1` / `userpass`
 
-### 3. Test Vulnerabilities
+For the non-Docker option:
+- **Frontend**: http://localhost:8080
+- **Backend API Health Check**: http://localhost:3001/api/health
+- **Frontend health endpoint**: http://localhost:8080/health
+
+### 4. Test Vulnerabilities
 - **BOLA**: Try accessing `/api/customers/me` without proper JWT
 - **SSRF**: Use `/api/documents/preview` with external URLs
 - **Weak Auth**: Try common passwords on weak accounts
@@ -128,6 +166,8 @@ The app includes automated traffic simulation for API discovery:
 - **Users**: 8 concurrent users with realistic authentication
 
 ## 🐳 Docker Commands
+
+The Docker option uses NGINX as the main entry point. If you want to run without Docker or without NGINX, use the non-Docker startup commands in Quick Start instead.
 
 ```bash
 # Development

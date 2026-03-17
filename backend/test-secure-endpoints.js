@@ -1,4 +1,6 @@
-const fetch = require('node-fetch');
+const fetch = global.fetch || ((...args) =>
+  import('node-fetch').then(({ default: nodeFetch }) => nodeFetch(...args))
+);
 
 const BASE_URL = 'http://localhost:3001/api';
 
